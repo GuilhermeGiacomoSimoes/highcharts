@@ -1,10 +1,10 @@
-document.addEventListener('DOMContentLoaded',  buildGraph() );
+getCharacters();
 
-function buildGraph() {
-	const characters = getCharacters();
-	const series = [];
+function buildGraph( characterSTRING ) {
+	const characters = JSON.parse( characterSTRING );
+	var series     = [];
 
-	if(characters != null && characters.length > 0){
+	if( characters != null && characters.length > 0 ){
 		series = getSeriesBy( characters );
 	}
 	else {
@@ -12,7 +12,7 @@ function buildGraph() {
 		return;
 	}
  
-	 var myChart = Highcharts.chart('container', {
+	var myChart = Highcharts.chart('container', {
             chart: {
                 type: 'bar'
             },
@@ -25,32 +25,33 @@ function buildGraph() {
 
             series: series 
         });
-
 }
 
 function getSeriesBy( characters ) {
 	var students    = [];
 	var notStudents = [];
 
-	for( const character of characters ) {
-		character.hogwartsStudent 
-			? students.append(character)
-			: notStudents.append(character);
+	for( var character of characters ) {
+		if( character.hogwartsStudent != null ) {
+			character.hogwartsStudent 
+				? students.push(character)
+				: notStudents.push(character);
+		}
 	}
 
-	return [ students, notStudents ];
+	return [ { name: 'students', data: [students.length] }, { name: 'non-students', data: [notStudents.length] } ];
 }
 
 function getCharacters() {
-        const url = "http://hp-api.herokuapp.com/api/characters";
-	
+        const url          = "http://hp-api.herokuapp.com/api/characters";
+	var characterJSON  = [];
+
 	var xhttp = new XMLHttpRequest();
-	xhttp.open("GET", url, true);
-	xhttp.send();
-	
-	xhttp.onreadystatechange = () => {
-	 	 return ( xhttp.status == 200 )
-			? xhttp.responseText
-			: null;
+	xhttp.open("GET", url, false);
+	xhttp.onreadystatechange = function(){
+	    if ( xhttp.status == 200 ) {
+		document.addEventListener( 'DOMContentLoaded', buildGraph( xhttp.responseText ) ); 
+    	    }
 	}
+	xhttp.send();
 }
